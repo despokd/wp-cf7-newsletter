@@ -1,0 +1,63 @@
+version: "3.1"
+
+services:
+  wordpress:
+    image: wordpress:latest
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: wp
+      WORDPRESS_DB_USER: user
+      WORDPRESS_DB_PASSWORD: admin
+      WORDPRESS_DEBUG: "true"
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_SITEURL', "http://localhost:8080");
+        define('WP_HOME', "http://localhost:8080");
+        define('FS_METHOD', 'direct');
+        define('WP_DEBUG_DISPLAY', true );
+    volumes:
+      - ./cf7-newsletter:/var/www/html/wp-content/plugins/cf7-newsletter
+      - wp:/var/www/html
+    networks:
+      - wp
+
+  mysql:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: wp
+      MYSQL_USER: user
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql:/var/lib/mysql
+    networks:
+      - wp
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    environment:
+      MYSQL_DATABASE: wp
+      MYSQL_USER: user
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: root
+      PMA_HOST: mysql
+    networks:
+      - wp
+volumes:
+  mysql:
+  wp:
+
+networks:
+  wp:

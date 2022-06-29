@@ -108,6 +108,10 @@ if ( ! class_exists( 'Cf7_Newsletter' ) ) :
 			require_once CF7NEWSLET_PLUGIN_DIR . 'core/includes/classes/class-cf7-newsletter-helpers.php';
 			require_once CF7NEWSLET_PLUGIN_DIR . 'core/includes/classes/class-cf7-newsletter-settings.php';
 
+			// new classes
+			require_once CF7NEWSLET_PLUGIN_DIR . 'core/includes/classes/class-cf7-newsletter-submission.php';
+			require_once CF7NEWSLET_PLUGIN_DIR . 'core/includes/classes/class-cf7-newsletter-form-tag.php';
+
 			require_once CF7NEWSLET_PLUGIN_DIR . 'core/includes/classes/class-cf7-newsletter-run.php';
 		}
 
