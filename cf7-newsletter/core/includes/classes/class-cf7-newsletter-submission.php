@@ -18,7 +18,7 @@ const POST_TYPE = 'cf7_nl_submission';
 class Cf7_Newsletter_Submission {
 
     public function __construct() {
-        //add_action('wpcf7_before_send_mail', array($this, 'before_send_mail'), 10, 1);
+        add_action('wpcf7_before_send_mail', array($this, 'before_send_mail'), 10, 1);
         add_filter('wpcf7_mail_components', array($this, 'add_optin_link'), 10, 3);
     }
 
@@ -41,29 +41,16 @@ class Cf7_Newsletter_Submission {
      * @param $cf7
      */
     public function before_send_mail($contact_form, &$abort, $submission) {
+        // get newsletter field
+        $newsletter_field = $submission->get_posted_data('newsletter_field');
 
         // check if form contains a newsletter field
-        if ($submission->get_posted_data('cf7_newsletter')) {
+        if ($newsletter_field) {
             $submission['body'] .= "\n\n" . '<a href="' . get_permalink(get_option('cf7_newsletter_optin_page')) . '">' . __('Opt in', 'cf7-newsletter') . '</a>';
 
             // add submission
-            $this->update_submission($contact_form);
+            $submission_id = $this->add_submission($submission);
         }
-    }
-
-    /**
-     * Checks if the form contains a newsletter field
-     */
-    private function has_newsletter_field($cf7) {
-        $has_newsletter_field = false;
-        $fields = $cf7->scan_form_tags();
-        foreach ($fields as $field) {
-            if ($field['type'] == 'cf7_newsletter_link') {
-                $has_newsletter_field = true;
-                break;
-            }
-        }
-        return $has_newsletter_field;
     }
 
     /**
@@ -73,28 +60,6 @@ class Cf7_Newsletter_Submission {
      */
     public function add_submission($cf7) {
         $submission = array(
-            'form_id' => null,
-            'form_values' => null,
-            'submission_date' => current_time('mysql'),
-            'email' => null,
-            'opt-in' => false
-        );
-
-        $submission_id = wp_insert_post(array(
-            'post_type' => POST_TYPE,
-            'post_status' => 'draft',
-            'post_title' => 'pending',
-            'post_content' => null
-        ));
-
-        return $submission_id;
-    }
-
-    /**
-     * Update a submission to custom post type "cf7_nl_submission".
-     */
-    public function update_submission($cf7) {
-        $submission = array(
             'form_id' => $cf7->id(),
             'form_values' => $cf7->posted_data(),
             'submission_date' => current_time('mysql'),
@@ -102,11 +67,14 @@ class Cf7_Newsletter_Submission {
             'opt-in' => false
         );
 
-        wp_update_post(array(
-            'ID' => $submission_id,
-            'post_title' => $submission['email'],
+        $submission_id = wp_insert_post(array(
+            'post_type' => POST_TYPE,
+            'post_status' => 'draft',
+            'post_title' => 'pending',
             'post_content' => json_encode($submission)
         ));
+
+        return $submission_id;
     }
 
     /**
