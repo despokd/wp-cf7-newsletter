@@ -19,6 +19,7 @@ class Cf7_Newsletter_Submission {
 
     public function __construct() {
         add_filter('wpcf7_mail_components', array($this, 'add_optin_link'), 10, 3);
+        add_action('wpcf7_before_send_mail', array($this, 'add_submission_content'), 10, 3);
         add_action('wp', array($this, 'optin_link_handler'));
         add_filter('wpcf7_mail_components', array($this, 'unsubscribe'), 10, 3);
     }
@@ -32,23 +33,23 @@ class Cf7_Newsletter_Submission {
      * @return array
      */
     public function add_optin_link($components, $contact_form, $instance) {
-        // search for newsletter field
-        $newsletter_field = $contact_form->scan_form_tags(array('type' => 'cf7_newsletter'));
-        if (empty($newsletter_field)) {
+        // search submission in custom post type
+        $args = array(
+            'post_type' => POST_TYPE,
+            'post_status' => 'pending',
+            'post_title' => $components['recipient']
+        );
+        $submissions = get_posts($args);
+        if (!$submissions) {
             return $components;
         }
-
-        // add submission
-        $submission_id = $this->add_submission($contact_form, $components, $instance);
+        $submission_id = $submissions[0]->ID;
 
         // get the optin link
         $optin_link = $this->get_optin_link($submission_id, $components['recipient']);
 
         // add optin link to mail
         $components['body'] .= "\n\n" . $optin_link;
-
-        // log
-        error_log($components['body']);
 
         return $components;
     }
@@ -67,44 +68,38 @@ class Cf7_Newsletter_Submission {
     }
 
     /**
-     * Before sending mail, we need to save the submission data
-     *
-     */
-    public function before_send_mail($contact_form) {
-        // get newsletter field
-        $newsletter_field = $contact_form->scan_form_tags(array('type' => 'cf7_newsletter'));
-
-        // check if form contains a newsletter field
-        if ($newsletter_field) {
-            $newsletter_field['body'] .= "\n\n" . '<a href="' . get_permalink(get_option('cf7_newsletter_optin_page')) . '">' . __('Opt in', 'cf7-newsletter') . '</a>';
-        }
-    }
-
-    /**
      * Add a submission to custom post type "cf7_nl_submission".
      * 
      * @param $contact_form
+     * @param $abort
+     * @param $instance
      */
-    public function add_submission($contact_form, $components, $instance) {
-        $submission = array(
-            'form_id' => $contact_form->id(),
-            'form_values' => $contact_form->get_properties(),
-            'submission_date' => current_time('mysql')
-        );
+    public function add_submission_content($contact_form, $abort, $instance) {
+        // check if form contains a newsletter field
+        $newsletter_field = $contact_form->scan_form_tags(array('type' => 'cf7_newsletter'));
+        if (empty($newsletter_field)) {
+            return;
+        }
+
+        // create submission
+        $mail_fields = $contact_form->scan_form_tags(array('basetype' => 'email'));
+        $recipient = $instance->get_posted_data($mail_fields[0]->raw_name);
 
         $submission_id = wp_insert_post(array(
             'post_type' => POST_TYPE,
             'post_status' => 'pending',
-            'post_title' => $components['recipient'], true,
-            'post_content' => json_encode($submission)
+            'post_title' => $recipient
         ));
 
         // add custom fields
-        foreach ($submission as $key => $value) {
+        add_post_meta($submission_id, 'form_id',  $contact_form->id());
+        add_post_meta($submission_id, 'form_title', $contact_form->title());
+        add_post_meta($submission_id, 'submission_date',  current_time('mysql'));
+        foreach ($instance->get_posted_data() as $key => $value) {
             add_post_meta($submission_id, $key, $value);
         }
 
-        return $submission_id;
+        return;
     }
 
     /**
@@ -114,6 +109,7 @@ class Cf7_Newsletter_Submission {
         register_post_type(POST_TYPE, array(
             'labels' => array(
                 'name' => __('Submissions', 'cf7-newsletter'),
+                'menu_name' => __('Newsletter', 'cf7-newsletter'),
                 'singular_name' => __('Submission', 'cf7-newsletter'),
                 'edit_item' => __('View Submission', 'cf7-newsletter'),
                 'search_items' => __('Search Submissions', 'cf7-newsletter'),
@@ -122,12 +118,19 @@ class Cf7_Newsletter_Submission {
             ),
             'show_ui' => true,
             'show_in_menu' => false,
+            'menu_icon' => 'dashicons-email-alt',
             'public' => false,
             'has_archive' => false,
             'hierarchical' => false,
-            'exclude_from_search' => true,
+            'exclude_from_search' => false,
+            'publicly_queryable' => false,
             'capability_type' => 'post',
-            'supports' => array('title, custom-fields, editor, author, thumbnail, page-attributes, comments, revisions, post-formats')
+            'supports' => array(
+                'title',
+                'custom-fields',
+                'revisions'
+            ),
+            'query_var' => true
         ));
 
         // add to cf7 menu
@@ -160,8 +163,6 @@ class Cf7_Newsletter_Submission {
 
             // check if submission exists
             if ($submission) {
-                // get submission data
-                $submission_data = json_decode($submission->post_content, true);
 
                 // check if submission data is valid
                 if ($submission->post_title == $submission_mail) {
@@ -198,7 +199,7 @@ class Cf7_Newsletter_Submission {
         $admin_name = get_option('blogname');
 
         // get admin mail subject
-        $admin_mail_subject = __('New subscriber', 'cf7-newsletter') . $submission->post_title;
+        $admin_mail_subject = __('New subscriber', 'cf7-newsletter') . ' ' . $submission->post_title;
 
         // get data
         $submission_data = json_decode($submission->post_content, true);
