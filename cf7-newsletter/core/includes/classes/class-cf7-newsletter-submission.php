@@ -204,7 +204,7 @@ class Cf7_Newsletter_Submission {
      */
     public function send_new_subscriber_mail($submission) {
         // get admin email
-        $admin_email = get_option('admin_email');
+        $admin_email = get_option('cf7_newsletter_admin_mail') ?? get_option('admin_email');
 
         // get admin name
         $admin_name = get_option('blogname');
@@ -285,7 +285,7 @@ class Cf7_Newsletter_Submission {
      */
     public function send_unsubscribe_mail($email) {
         // get admin email
-        $admin_email = get_option('admin_email');
+        $admin_email = get_option('cf7_newsletter_admin_mail') ?? get_option('admin_email');
 
         // get admin name
         $admin_name = get_option('blogname');

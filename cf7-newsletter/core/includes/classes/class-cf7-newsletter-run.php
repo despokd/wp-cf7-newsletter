@@ -110,6 +110,7 @@ class Cf7_Newsletter_Run {
 	 */
 	public function add_plugin_action_links($links = []) {
 		$links[] = '<a href="' . admin_url('edit.php?post_type=' . POST_TYPE) . '">' . __('Submissions', 'cf7-newsletter') . '</a>';
+		$links[] = '<a href="' . admin_url('admin.php?page=cf7-newsletter-settings') . '">' . __('Settings', 'cf7-newsletter') . '</a>';
 		return $links;
 	}
 }
