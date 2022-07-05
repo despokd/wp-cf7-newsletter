@@ -21,6 +21,7 @@ services:
         define('WP_DEBUG_DISPLAY', true );
     volumes:
       - ./cf7-newsletter:/var/www/html/wp-content/plugins/cf7-newsletter
+      - ./debug.log:/var/www/html/wp-content/debug.log
       - wp:/var/www/html
     networks:
       - wp
