@@ -172,17 +172,28 @@ class Cf7_Newsletter_Submission {
                         'post_status' => 'publish'
                     ));
 
+                    // add custom field opt in date
+                    add_post_meta($submission_id, 'opt_in_date', current_time('mysql'));
+
                     // send mail
                     $this->send_new_subscriber_mail($submission);
 
                     // add success message
-                    _e('You have successfully subscribed to our newsletter.', 'cf7-newsletter');
+?>
+                    <script>
+                        alert('<?php _e('You have been successfully subscribed to our newsletter.', 'cf7-newsletter'); ?>');
+                    </script>
+            <?php
 
                     return;
                 }
             }
             // add failure message
-            _e('Something went wrong. Please try again.', 'cf7-newsletter');
+            ?>
+            <script>
+                alert('<?php _e('Something went wrong. Please try again.', 'cf7-newsletter'); ?>');
+            </script>
+<?php
         }
     }
 
@@ -201,46 +212,21 @@ class Cf7_Newsletter_Submission {
         // get admin mail subject
         $admin_mail_subject = __('New subscriber', 'cf7-newsletter') . ' ' . $submission->post_title;
 
-        // get data
-        $submission_data = json_decode($submission->post_content, true);
+        // get data from custom fields
+        $submission_data = get_post_meta($submission->ID);
 
         // get admin mail body
-        $admin_mail_body = '
-            <p>' . __('New subscriber', 'cf7-newsletter') . '</p>
-            <table>
-                <tr>
-                    <td>' . __('Email', 'cf7-newsletter') . '</td>
-                    <td>' . $submission->post_title . '</td>
-                </tr>
-            </table>
-        ';
+        $admin_mail_body =  __('New subscriber', 'cf7-newsletter') . __('Email', 'cf7-newsletter') . '\\n';
 
         try {
             // all submission data in table
-            $admin_mail_body .= '<p><strong>' . __('Form data', 'cf7-newsletter') . '</strong></p>';
-            $admin_mail_body .= '<table>';
+            $admin_mail_body .= '*' . __('Form data', 'cf7-newsletter') . '*';
             foreach ($submission_data as $key => $value) {
-                $admin_mail_body .= '
-                <tr>
-                    <td>' . $key . '</td>
-                    <td>' . $value . '</td>
-                </tr>
-            ';
+                $admin_mail_body .= $key . ': ' . $value[0];
             }
-            $admin_mail_body .= '</table>';
         } catch (Exception $e) {
             // do nothing
         }
-
-
-        // replace tokens
-        $admin_mail_subject = str_replace('{submission_date}', $submission_data['submission_date'], $admin_mail_subject);
-        $admin_mail_subject = str_replace('{submission_ip}', $submission_data['submission_ip'], $admin_mail_subject);
-        $admin_mail_subject = str_replace('{submission_mail}', $submission_data['email'], $admin_mail_subject);
-
-        $admin_mail_body = str_replace('{submission_date}', $submission_data['submission_date'], $admin_mail_body);
-        $admin_mail_body = str_replace('{submission_ip}', $submission_data['submission_ip'], $admin_mail_body);
-        $admin_mail_body = str_replace('{submission_mail}', $submission_data['email'], $admin_mail_body);
 
         // send mail
         wp_mail("$admin_name <$admin_email>", $admin_mail_subject, $admin_mail_body);
@@ -261,30 +247,24 @@ class Cf7_Newsletter_Submission {
             return $components;
         }
 
-        // get email
-        $emails = $contact_form->scan_form_tags(array('type' => 'email*'));
-
         // get submission where post title is equal to email
-        foreach ($emails as $email) {
-            $submission = get_posts(array(
-                'post_type' => POST_TYPE,
-                'post_status' => 'any',
-                'meta_query' => array(
-                    array(
-                        'key' => 'cf7_newsletter_email',
-                        'value' => $email->name,
-                        'compare' => '='
-                    )
-                )
-            ));
+        $submissions = get_posts(array(
+            'post_type' => POST_TYPE,
+            'post_status' => 'any',
+            'post_title' => $components['recipient']
+        ));
 
-            while ($submission = array_shift($submission)) {
-                // delete submission
-                wp_delete_post($submission->ID, true);
+        // check if submissions exists
+        if (empty($submissions)) {
+            return $components;
+        }
 
-                // send mail
-                //$this->send_unsubscribe_mail($email->name);
-            }
+        foreach ($submissions as $submission) {
+            // delete submission
+            wp_delete_post($submission->ID, true);
+
+            // send mail
+            //$this->send_unsubscribe_mail($email->name);
         }
 
         return $components;
