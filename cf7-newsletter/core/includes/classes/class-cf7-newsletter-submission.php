@@ -220,9 +220,9 @@ class Cf7_Newsletter_Submission {
 
         try {
             // all submission data in table
-            $admin_mail_body .= '*' . __('Form data', 'cf7-newsletter') . '*';
+            $admin_mail_body .= '*' . __('Form data', 'cf7-newsletter') . '*' . '\\n';
             foreach ($submission_data as $key => $value) {
-                $admin_mail_body .= $key . ': ' . $value[0];
+                $admin_mail_body .= $key . ': ' . $value[0] . '\\n';
             }
         } catch (Exception $e) {
             // do nothing
@@ -260,6 +260,14 @@ class Cf7_Newsletter_Submission {
         }
 
         foreach ($submissions as $submission) {
+
+            // add custom fields to mail
+            $components['body'] .= '*' . __('Submission data', 'cf7-newsletter') . "*\n";
+            $submission_data = get_post_meta($submission->ID);
+            foreach ($submission_data as $key => $value) {
+                $components['body'] .= $key . ': ' . $value[0] . "\n";
+            }
+
             // delete submission
             wp_delete_post($submission->ID, true);
 
