@@ -50,6 +50,9 @@ class Cf7_Newsletter_Run {
 
 		// cf7 form tags
 		add_action('wpcf7_init', array($this, 'register_form_tag'));
+
+		// custom link at plugin page
+		add_filter('plugin_action_links_cf7-newsletter/cf7-newsletter.php', array($this, 'add_plugin_action_links'));
 	}
 
 	/**
@@ -94,5 +97,19 @@ class Cf7_Newsletter_Run {
 	 */
 	public function register_form_tag() {
 		new Cf7_Newsletter_Form_Tag();
+	}
+
+	/**
+	 * Add custom links to plugin page.
+	 *
+	 * @access	public
+	 * @since	1.0.0
+	 *
+	 * @param	array	$links		The links array.
+	 * @return	array				The links array with the new links added.
+	 */
+	public function add_plugin_action_links($links = []) {
+		$links[] = '<a href="' . admin_url('edit.php?post_type=' . POST_TYPE) . '">' . __('Submissions', 'cf7-newsletter') . '</a>';
+		return $links;
 	}
 }
