@@ -1,0 +1,106 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: CF7 Newsletter\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-07-05 11:08+0000\n"
+"PO-Revision-Date: 2022-07-05 11:11+0000\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de_DE\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.2; wp-6.0\n"
+"X-Domain: cf7-newsletter"
+
+#. Description of the plugin
+msgid "Catch CF7 submissions and provide double optin"
+msgstr "Erfasse CF7 Newsletter Anmeldungen und nutze Double Optin"
+
+#. Name of the plugin
+msgid "CF7 Newsletter"
+msgstr ""
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:219
+#: core/includes/classes/class-cf7-newsletter-submission.php:301
+msgid "Email"
+msgstr "E-Mail"
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:223
+msgid "Form data"
+msgstr "Formulardaten"
+
+#. URI of the plugin
+msgid "https://github.com/despokd/wp-cf7-newsletter"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://kdomaratius.de"
+msgstr ""
+
+#. Author of the plugin
+msgid "Kilian Domaratius"
+msgstr ""
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:213
+#: core/includes/classes/class-cf7-newsletter-submission.php:219
+msgid "New subscriber"
+msgstr "Neuer Abonnent"
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:112
+msgid "Newsletter"
+msgstr ""
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:116
+msgid "No Submissions found"
+msgstr "Keine Anmeldungen gefunden"
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:117
+msgid "No Submissions found in Trash"
+msgstr "Keine Anmeldungen i Papierkorb gefunden"
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:115
+msgid "Search Submissions"
+msgstr "Suche Anmeldungen"
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:194
+msgid "Something went wrong. Please try again."
+msgstr "Es ist ein Fehler aufgetreten. Bitte versuche es erneut."
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:113
+msgid "Submission"
+msgstr "Anmeldung"
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:265
+msgid "Submission data"
+msgstr "Anmeldedaten"
+
+#: core/includes/classes/class-cf7-newsletter-run.php:112
+#: core/includes/classes/class-cf7-newsletter-submission.php:111
+#: core/includes/classes/class-cf7-newsletter-submission.php:146
+#: core/includes/classes/class-cf7-newsletter-submission.php:147
+msgid "Submissions"
+msgstr "Anmeldungen"
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:294
+#: core/includes/classes/class-cf7-newsletter-submission.php:298
+msgid "Unsubscribe"
+msgstr "Abmelden"
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:114
+msgid "View Submission"
+msgstr "Anmeldung anzeigen"
+
+#: core/class-cf7-newsletter.php:54
+msgid "You are not allowed to clone this class."
+msgstr ""
+
+#: core/class-cf7-newsletter.php:65
+msgid "You are not allowed to unserialize this class."
+msgstr ""
+
+#: core/includes/classes/class-cf7-newsletter-submission.php:184
+msgid "You have been successfully subscribed to our newsletter."
+msgstr "Du hast dich erfolgreich für unseren Newsletter angemeldet."
