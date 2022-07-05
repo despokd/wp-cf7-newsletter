@@ -18,9 +18,9 @@ const POST_TYPE = 'cf7_nl_submission';
 class Cf7_Newsletter_Submission {
 
     public function __construct() {
-        //add_action('wpcf7_before_send_mail', array($this, 'before_send_mail'), 10, 1);
         add_filter('wpcf7_mail_components', array($this, 'add_optin_link'), 10, 3);
         add_action('wp', array($this, 'optin_link_handler'));
+        add_filter('wpcf7_mail_components', array($this, 'unsubscribe'), 10, 3);
     }
 
     /**
@@ -240,6 +240,81 @@ class Cf7_Newsletter_Submission {
         $admin_mail_body = str_replace('{submission_date}', $submission_data['submission_date'], $admin_mail_body);
         $admin_mail_body = str_replace('{submission_ip}', $submission_data['submission_ip'], $admin_mail_body);
         $admin_mail_body = str_replace('{submission_mail}', $submission_data['email'], $admin_mail_body);
+
+        // send mail
+        wp_mail("$admin_name <$admin_email>", $admin_mail_subject, $admin_mail_body);
+    }
+
+    /**
+     * Unsubscribe: Remove post and send mail to admin.
+     *
+     * @param $components
+     * @param $contact_form
+     * @param $instance
+     * @return array
+     */
+    public function unsubscribe($components, $contact_form, $instance) {
+        // search for newsletter field
+        $newsletter_field = $contact_form->scan_form_tags(array('type' => 'cf7_newsletter_unsubscribe'));
+        if (empty($newsletter_field)) {
+            return $components;
+        }
+
+        // get email
+        $emails = $contact_form->scan_form_tags(array('type' => 'email*'));
+
+        // get submission where post title is equal to email
+        foreach ($emails as $email) {
+            $submission = get_posts(array(
+                'post_type' => POST_TYPE,
+                'post_status' => 'any',
+                'meta_query' => array(
+                    array(
+                        'key' => 'cf7_newsletter_email',
+                        'value' => $email->name,
+                        'compare' => '='
+                    )
+                )
+            ));
+
+            while ($submission = array_shift($submission)) {
+                // delete submission
+                wp_delete_post($submission->ID, true);
+
+                // send mail
+                //$this->send_unsubscribe_mail($email->name);
+            }
+        }
+
+        return $components;
+    }
+
+    /**
+     * Send mail to admin for unsubscribe.
+     *
+     * @param $submission
+     */
+    public function send_unsubscribe_mail($email) {
+        // get admin email
+        $admin_email = get_option('admin_email');
+
+        // get admin name
+        $admin_name = get_option('blogname');
+
+        // get admin mail subject
+        $admin_mail_subject = __('Unsubscribe', 'cf7-newsletter') . $email;
+
+        // get admin mail body
+        $admin_mail_body = '
+            <p>' . __('Unsubscribe', 'cf7-newsletter') . '</p>
+            <table>
+                <tr>
+                    <td>' . __('Email', 'cf7-newsletter') . '</td>
+                    <td>' . $email . '</td>
+                </tr>
+            </table>
+            <p>' . __('This mail was sent from CF7 Newsletter Plugin') . '</p>
+        ';
 
         // send mail
         wp_mail("$admin_name <$admin_email>", $admin_mail_subject, $admin_mail_body);
