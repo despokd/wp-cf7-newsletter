@@ -216,13 +216,18 @@ class Cf7_Newsletter_Submission {
         $submission_data = get_post_meta($submission->ID);
 
         // get admin mail body
-        $admin_mail_body =  __('New subscriber', 'cf7-newsletter') . __('Email', 'cf7-newsletter') . '\\n';
+        $admin_mail_body =  __('New subscriber', 'cf7-newsletter') . ' ' . $submission->post_title . '
+
+';
 
         try {
             // all submission data in table
-            $admin_mail_body .= '*' . __('Form data', 'cf7-newsletter') . '*' . '\\n';
+            $admin_mail_body .= '' . __('Form data', 'cf7-newsletter') . '' . '
+_______________
+';
             foreach ($submission_data as $key => $value) {
-                $admin_mail_body .= $key . ': ' . $value[0] . '\\n';
+                $admin_mail_body .= $key . ':   ' . $value[0] . '
+';
             }
         } catch (Exception $e) {
             // do nothing
