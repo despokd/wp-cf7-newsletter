@@ -33,8 +33,8 @@ class Cf7_Newsletter_Settings {
 	function __construct() {
 
 		$this->plugin_name = CF7NEWSLET_NAME;
-		$this->addSettingsInitAction();
-		$this->addOptionsPageAction();
+		$this->add_settings_init_action();
+		$this->add_options_page_action();
 		$this->add_debug_mode();
 
 	}
@@ -61,14 +61,14 @@ class Cf7_Newsletter_Settings {
 	/**
 	 * Register admin page
 	 */
-	public function addSettingsInitAction() {
+	public function add_settings_init_action() {
 		add_action('admin_init', array($this, 'settings_init'));
 	}
 
 	/**
 	 * Register settings page
 	 */
-	public function addOptionsPageAction() {
+	public function add_options_page_action() {
 		add_action('admin_menu', array($this, 'options_page'));
 	}
 
