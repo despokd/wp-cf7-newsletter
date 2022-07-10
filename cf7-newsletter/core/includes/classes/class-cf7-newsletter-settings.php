@@ -35,6 +35,8 @@ class Cf7_Newsletter_Settings {
 		$this->plugin_name = CF7NEWSLET_NAME;
 		$this->addSettingsInitAction();
 		$this->addOptionsPageAction();
+		$this->add_debug_mode();
+
 	}
 
 	/**
@@ -64,10 +66,17 @@ class Cf7_Newsletter_Settings {
 	}
 
 	/**
-	 * Register our wbnsoftgarden_options_page to the admin_menu action hook.
+	 * Register settings page
 	 */
 	public function addOptionsPageAction() {
 		add_action('admin_menu', array($this, 'options_page'));
+	}
+
+	/**
+	 * Register debug mode
+	 */
+	public function add_debug_mode() {
+		add_action('wpcf7_feedback_response', array($this, 'debug_cf7_add_error'), 10, 2);
 	}
 
 	/**
@@ -92,12 +101,20 @@ class Cf7_Newsletter_Settings {
 
 		// Register a new setting
 		register_setting('cf7_newsletter_options', 'cf7_newsletter_admin_mail');
+		register_setting('cf7_newsletter_options', 'cf7_newsletter_debug');
 
 		// Register a new field
 		add_settings_field(
 			'cf7_newsletter_admin_mail', 					// ID
 			__('Admin mail', 'cf7_newsletter'), 			// Setting title
 			array($this, 'show_text_field_cf7_newsletter_admin_mail'), 				// Callback
+			'cf7_newsletter', 								// Page
+			'cf7_newsletter_general_section', 				// Section
+		);
+		add_settings_field(
+			'cf7_newsletter_debug', 					// ID
+			__('Admin mail', 'cf7_newsletter'), 			// Setting title
+			array($this, 'show_text_field_cf7_newsletter_admin_mail'), 				// TODO Callback
 			'cf7_newsletter', 								// Page
 			'cf7_newsletter_general_section', 				// Section
 		);
@@ -140,7 +157,10 @@ class Cf7_Newsletter_Settings {
 							<th scope="row"><label for="cf7_newsletter_admin_mail"><?php _e('Admin mail'); ?></label></th>
 							<td><input type="email" name="cf7_newsletter_admin_mail" value="<?php echo get_option('cf7_newsletter_admin_mail'); ?>" /></td>
 						</tr>
-
+						<tr valign="top">
+							<th scope="row"><label for="cf7_newsletter_debug"><?php _e('Debug mode'); ?></label></th>
+							<td><input type="checkbox" id="cf7_newsletter_debug" name="cf7_newsletter_debug" <?php echo (get_option('cf7_newsletter_debug') == 'on') ? 'checked' : ''; ?> /></td>
+						</tr>
 					</tbody>
 				</table>
 				<?php submit_button(); ?>
@@ -159,5 +179,18 @@ class Cf7_Newsletter_Settings {
 		<p>Add <code>[cf7_newsletter_unsubscribe]</code> to your unsubscribe form. The email will be used to send a notification to site admin.</p>
 <?php
 
+	}
+
+	/**
+	 * Output debug info at submission
+	 * @link https://kau-boys.de/2464/wordpress/fehler-beim-senden-in-contact-form-7-debuggen
+	 */
+	public function debug_cf7_add_error($items, $result) {
+		if ('mail_failed' === $result['status']) {
+			global $phpmailer;
+			$items['error_info'] = $phpmailer->ErrorInfo;
+		}
+
+		return $items;
 	}
 }
