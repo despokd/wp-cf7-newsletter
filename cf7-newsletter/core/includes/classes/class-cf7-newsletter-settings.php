@@ -36,7 +36,6 @@ class Cf7_Newsletter_Settings {
 		$this->add_settings_init_action();
 		$this->add_options_page_action();
 		$this->add_debug_mode();
-
 	}
 
 	/**
@@ -109,14 +108,14 @@ class Cf7_Newsletter_Settings {
 			__('Admin mail', 'cf7_newsletter'), 			// Setting title
 			array($this, 'show_text_field_cf7_newsletter_admin_mail'), 				// Callback
 			'cf7_newsletter', 								// Page
-			'cf7_newsletter_general_section', 				// Section
+			'cf7_newsletter_general_section' 				// Section
 		);
 		add_settings_field(
 			'cf7_newsletter_debug', 					// ID
 			__('Admin mail', 'cf7_newsletter'), 			// Setting title
 			array($this, 'show_text_field_cf7_newsletter_admin_mail'), 				// TODO Callback
 			'cf7_newsletter', 								// Page
-			'cf7_newsletter_general_section', 				// Section
+			'cf7_newsletter_general_section' 				// Section
 		);
 	}
 

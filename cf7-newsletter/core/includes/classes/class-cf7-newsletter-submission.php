@@ -146,7 +146,7 @@ class Cf7_Newsletter_Submission {
             '📰 ' . __('Submissions', 'cf7-newsletter'), // page title
             '📰 ' . __('Submissions', 'cf7-newsletter'), // menu title
             'manage_options', // capability
-            'edit.php?post_type=' . POST_TYPE, // menu slug
+            'edit.php?post_type=' . POST_TYPE // menu slug
         );
     }
 
