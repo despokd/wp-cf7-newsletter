@@ -279,12 +279,14 @@ _______________
 
         // search for email field
         $email_fields = $contact_form->scan_form_tags(array('base_type' => 'email'));
+        array_merge($email_fields, $contact_form->scan_form_tags(array('type' => 'email')));
+        array_merge($email_fields, $contact_form->scan_form_tags(array('type' => 'email*')));
 
         // search for email field
         $email_field = 'error';
         foreach ($email_fields as $field) {
             if (!empty($field)) {
-                $email_field = $mail_object->replace_tags("[$field->raw_name]", true);
+                $email_field = $mail_object->replace_tags("[$field->name]", true);
                 break;
             }
         }
@@ -306,14 +308,14 @@ _______________
             return $components;
         }
 
-
         foreach ($submissions as $submission) {
-            if ($submission->post_title === $email_field) {
+            if (mb_strtolower(trim($submission->post_title)) == mb_strtolower(trim($email_field))) {
                 // add custom fields to mail
-                $components['body'] .= '*' . __('Submission data', 'cf7-newsletter') . "*\n";
+                $components['body'] .= "\n\n" . __('Submission data', 'cf7-newsletter') . "\n";
+                $components['body'] .= '_______________' . "\n";
                 $submission_data = get_post_meta($submission->ID);
                 foreach ($submission_data as $key => $value) {
-                    $components['body'] .= $key . ': ' . $value[0] . "\n";
+                    $components['body'] .= $key . ': ' . $value[0] . "  \n";
                 }
 
                 // delete submission
