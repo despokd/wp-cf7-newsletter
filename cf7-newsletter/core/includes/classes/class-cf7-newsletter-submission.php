@@ -22,6 +22,9 @@ class Cf7_Newsletter_Submission {
         add_action('wpcf7_before_send_mail', array($this, 'add_submission_content'), 10, 3);
         add_action('wp', array($this, 'optin_link_handler'));
         add_filter('wpcf7_mail_components', array($this, 'unsubscribe'), 10, 3);
+
+        // activate custom fields, even if ACF deactivates them
+        add_filter('acf/settings/remove_wp_meta_box', '__return_false');
     }
 
     /**
