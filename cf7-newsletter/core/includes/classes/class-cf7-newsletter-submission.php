@@ -82,8 +82,19 @@ class Cf7_Newsletter_Submission {
         }
 
         // create submission
-        $mail_fields = $contact_form->scan_form_tags(array('basetype' => 'email'));
-        $recipient = $instance->get_posted_data($mail_fields[0]->raw_name);
+        $recipient = $instance->get_posted_data('your-email');
+
+        if (empty($recipient)) {
+            try {
+                $mail_fields = $contact_form->scan_form_tags(array('basetype' => 'email'));
+                $recipient = $instance->get_posted_data($mail_fields[0]->raw_name);
+            } catch (Exception $e) {
+            }
+        }
+
+        if (empty($recipient)) {
+            $recipient = 'n.a.';
+        }
 
         $submission_id = wp_insert_post(array(
             'post_type' => POST_TYPE,
