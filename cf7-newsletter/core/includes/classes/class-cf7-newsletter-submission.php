@@ -18,9 +18,12 @@ const POST_TYPE = 'cf7_nl_submission';
 class Cf7_Newsletter_Submission {
 
     public function __construct() {
+        // subscribe
         add_filter('wpcf7_mail_components', array($this, 'add_optin_link'), 10, 3);
         add_action('wpcf7_before_send_mail', array($this, 'add_submission_content'), 10, 3);
         add_action('wp', array($this, 'optin_link_handler'));
+
+        // unsubscribe
         add_filter('wpcf7_mail_components', array($this, 'unsubscribe'), 10, 3);
 
         // activate custom fields, even if ACF deactivates them
@@ -32,10 +35,16 @@ class Cf7_Newsletter_Submission {
      *
      * @param $components
      * @param $contact_form
-     * @param $instance
+     * @param $mail_object
      * @return array
      */
-    public function add_optin_link($components, $contact_form, $instance) {
+    public function add_optin_link($components, $contact_form, $mail_object) {
+        // search for newsletter field
+        $newsletter_field = $contact_form->scan_form_tags(array('type' => 'cf7_newsletter'));
+        if (empty($newsletter_field)) {
+            return $components;
+        }
+
         // search submission in custom post type
         $args = array(
             'post_type' => POST_TYPE,
@@ -196,6 +205,7 @@ class Cf7_Newsletter_Submission {
 ?>
                     <script>
                         alert('<?php _e('You have been successfully subscribed to our newsletter.', 'cf7-newsletter'); ?>');
+                        window.location.href = '<?php echo get_home_url(); ?>';
                     </script>
             <?php
 
@@ -206,6 +216,7 @@ class Cf7_Newsletter_Submission {
             ?>
             <script>
                 alert('<?php _e('Something went wrong. Please try again.', 'cf7-newsletter'); ?>');
+                window.location.href = '<?php echo get_home_url(); ?>';
             </script>
 <?php
         }
@@ -256,21 +267,38 @@ _______________
      *
      * @param $components
      * @param $contact_form
-     * @param $instance
+     * @param $mail_object
      * @return array
      */
-    public function unsubscribe($components, $contact_form, $instance) {
+    public function unsubscribe($components, $contact_form, $mail_object) {
         // search for newsletter field
         $newsletter_field = $contact_form->scan_form_tags(array('type' => 'cf7_newsletter_unsubscribe'));
         if (empty($newsletter_field)) {
             return $components;
         }
 
+        // search for email field
+        $email_fields = $contact_form->scan_form_tags(array('base_type' => 'email'));
+
+        // search for email field
+        $email_field = 'error';
+        foreach ($email_fields as $field) {
+            if (!empty($field)) {
+                $email_field = $mail_object->replace_tags("[$field->raw_name]", true);
+                break;
+            }
+        }
+
+        // check if email field is found
+        if (empty($email_field)) {
+            $email_field = $mail_object->replace_tags('[your-email]', true);
+        }
+
         // get submission where post title is equal to email
         $submissions = get_posts(array(
             'post_type' => POST_TYPE,
             'post_status' => 'any',
-            'post_title' => $components['recipient']
+            'post_title' => $email_field
         ));
 
         // check if submissions exists
@@ -278,20 +306,22 @@ _______________
             return $components;
         }
 
+
         foreach ($submissions as $submission) {
+            if ($submission->post_title === $email_field) {
+                // add custom fields to mail
+                $components['body'] .= '*' . __('Submission data', 'cf7-newsletter') . "*\n";
+                $submission_data = get_post_meta($submission->ID);
+                foreach ($submission_data as $key => $value) {
+                    $components['body'] .= $key . ': ' . $value[0] . "\n";
+                }
 
-            // add custom fields to mail
-            $components['body'] .= '*' . __('Submission data', 'cf7-newsletter') . "*\n";
-            $submission_data = get_post_meta($submission->ID);
-            foreach ($submission_data as $key => $value) {
-                $components['body'] .= $key . ': ' . $value[0] . "\n";
+                // delete submission
+                wp_delete_post($submission->ID, true);
+
+                // send mail
+                //$this->send_unsubscribe_mail($email->name);
             }
-
-            // delete submission
-            wp_delete_post($submission->ID, true);
-
-            // send mail
-            //$this->send_unsubscribe_mail($email->name);
         }
 
         return $components;
@@ -314,14 +344,9 @@ _______________
 
         // get admin mail body
         $admin_mail_body = '
-            <p>' . __('Unsubscribe', 'cf7-newsletter') . '</p>
-            <table>
-                <tr>
-                    <td>' . __('Email', 'cf7-newsletter') . '</td>
-                    <td>' . $email . '</td>
-                </tr>
-            </table>
-            <p>' . __('This mail was sent from CF7 Newsletter Plugin') . '</p>
+' . __('Unsubscribe', 'cf7-newsletter') . ' ' . $email . '
+
+' . __('This mail was sent from CF7 Newsletter Plugin') . '
         ';
 
         // send mail

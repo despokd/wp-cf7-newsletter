@@ -185,6 +185,12 @@ class Cf7_Newsletter_Settings {
 	 * @link https://kau-boys.de/2464/wordpress/fehler-beim-senden-in-contact-form-7-debuggen
 	 */
 	public function debug_cf7_add_error($items, $result) {
+		// check if debug mode is on
+		if (get_option('cf7_newsletter_debug') !== 'on') {
+			return;
+		}
+
+		// output mail error
 		if ('mail_failed' === $result['status']) {
 			global $phpmailer;
 			$items['error_info'] = $phpmailer->ErrorInfo;
